@@ -222,12 +222,13 @@ const uploadTempShortcut = async (req, res) => {
         console.log('Original filename:', fileName);
 
         // Create a temporary URL for the shortcut
-        const protocol = req.protocol;
+        const protocol = req.protocol === 'http' && process.env.NODE_ENV === 'production' ? 'https' : req.protocol;
         const host = req.get('host');
         const baseUrl = `${protocol}://${host}`;
         
         // Create a public URL for the shortcut file
-        const publicShortcutUrl = `${baseUrl}/temp/${fileName}`;
+        // For iOS to accept the URL, it must be a fully qualified HTTPS URL
+        const publicShortcutUrl = `${baseUrl}/api/shortcuts/temp/${fileName}`;
         
         console.log('Public shortcut URL:', publicShortcutUrl);
         

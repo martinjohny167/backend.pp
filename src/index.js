@@ -38,7 +38,14 @@ app.use(cors({
 app.use(express.json());
 
 // Serve static files from temp directory
-app.use('/temp', express.static(path.join(__dirname, '../temp')));
+app.use('/temp', express.static(path.join(__dirname, '../temp'), {
+    setHeaders: function (res, path, stat) {
+        if (path.endsWith('.shortcut')) {
+            res.set('Content-Type', 'application/octet-stream');
+            res.set('Content-Disposition', 'attachment');
+        }
+    }
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);
