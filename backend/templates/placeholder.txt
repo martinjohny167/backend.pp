@@ -1,0 +1,62 @@
+Place your Templatein.shortcut and Templateout.shortcut files in this directory.
+
+Your shortcut files can be in one of two formats:
+
+1. Binary .shortcut files
+   These files should contain the following patterns that will be replaced for each user:
+   - "userId":"1"
+   - "jobId":"1"
+
+2. JSON-structured shortcut files
+   These files should be valid JSON, with a structure similar to the example below.
+   The JSON will be automatically converted to the binary plist format required by iOS shortcuts.
+   The system uses bplist-creator to convert the JSON to a valid .shortcut file format.
+   The userId and jobId values will be replaced with the specific user and job values before conversion.
+
+Example of the JSON structure that will be properly processed:
+```json
+{
+  "WFWorkflowActions": [
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.dictionary",
+      "WFWorkflowActionParameters": {
+        "WFItems": {
+          "Value": {
+            "WFDictionaryFieldValueItems": [
+              {
+                "WFKey": {
+                  "Value": {
+                    "string": "userId"
+                  }
+                },
+                "WFValue": {
+                  "Value": {
+                    "string": "1"
+                  }
+                }
+              },
+              {
+                "WFKey": {
+                  "Value": {
+                    "string": "jobId"
+                  }
+                },
+                "WFValue": {
+                  "Value": {
+                    "string": "1"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+The JSON-structured files (TemplateInJson.shortcut and TemplateOutJson.shortcut) are the preferred format
+as they are more reliably processed and converted to the proper iOS shortcut format using bplist-creator.
+
+If you don't have these files yet, please create them in your iOS Shortcuts app with these patterns. 
