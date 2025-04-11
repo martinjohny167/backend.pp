@@ -203,6 +203,9 @@ function processShortcutJson(jsonData, userId, jobId) {
 // Function to handle temporary shortcut uploads for iOS devices
 const uploadTempShortcut = async (req, res) => {
     try {
+        console.log('Received upload request:', req.body);
+        console.log('Files:', req.file);
+        
         // Check if a file was uploaded
         if (!req.file) {
             return res.status(400).json({
@@ -214,6 +217,9 @@ const uploadTempShortcut = async (req, res) => {
         // Get the file path and name
         const filePath = req.file.path;
         const fileName = req.file.originalname;
+        
+        console.log('File saved to:', filePath);
+        console.log('Original filename:', fileName);
 
         // Create a temporary URL for the shortcut
         const protocol = req.protocol;
@@ -222,6 +228,8 @@ const uploadTempShortcut = async (req, res) => {
         
         // Create a public URL for the shortcut file
         const publicShortcutUrl = `${baseUrl}/temp/${fileName}`;
+        
+        console.log('Public shortcut URL:', publicShortcutUrl);
         
         // Return the URL to the client
         res.status(200).json({

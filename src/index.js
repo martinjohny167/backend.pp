@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 const totalHeRoutes = require('./routes/totalh&e');
 const jobSelectorRoutes = require('./routes/jobselector');
 const shiftDetailsRoutes = require('./routes/shiftdetails');
@@ -11,6 +13,12 @@ const authRoutes = require('./routes/auth');
 const shortcutsRoutes = require('./routes/shortcuts');
 
 const app = express();
+
+// Create temp directory if it doesn't exist
+const tempDir = path.join(__dirname, '../temp');
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+}
 
 // Security headers middleware
 app.use((req, res, next) => {
@@ -23,11 +31,14 @@ app.use((req, res, next) => {
 
 // Middleware
 app.use(cors({
-    origin:'https://sweet-faun-720cb9.netlify.app',
+    origin: ['https://sweet-faun-720cb9.netlify.app', 'http://localhost:3000', 'http://localhost:3001'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'X-User-Id', 'Authorization']
 }));
 app.use(express.json());
+
+// Serve static files from temp directory
+app.use('/temp', express.static(path.join(__dirname, '../temp')));
 
 // Routes
 app.use('/api/auth', authRoutes);
