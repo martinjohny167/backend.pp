@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 // Middleware
 app.use(cors({
-    origin: '*'|| 'https://67f95b8a144cbd15e864e23b--sweet-faun-720cb9.netlify.app',
+    origin: 'https://sweet-faun-720cb9.netlify.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'X-User-Id', 'Authorization']
 }));
