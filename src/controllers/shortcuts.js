@@ -311,16 +311,15 @@ const importShortcut = async (req, res) => {
             const jsonString = shortcutBuffer.toString('utf-8');
             const jsonData = JSON.parse(jsonString);
             
-            // Set the shortcut name
+            // Set the shortcut name to the job title
             jsonData.WFWorkflowName = jobTitle;
             
             // Convert back to binary plist format
             modifiedBuffer = Buffer.from(bplistCreator(jsonData));
-            console.log('Successfully renamed shortcut');
+            console.log('Successfully renamed shortcut to:', jobTitle);
         } catch (error) {
-            // If parsing as JSON fails, try to handle as binary plist
-            console.log('Source is not JSON, treating as binary plist');
-            // Just copy the file as is for now
+            // If parsing as JSON fails, just copy the file as is
+            console.log('Source is not JSON, copying file as is');
             modifiedBuffer = shortcutBuffer;
         }
         
