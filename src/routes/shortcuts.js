@@ -50,4 +50,18 @@ router.get('/temp/:filename', (req, res) => {
     fileStream.pipe(res);
 });
 
+// Add a catch-all route for debugging
+router.all('*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Route not found: ${req.method} ${req.originalUrl}`,
+        availableRoutes: [
+            'POST /api/shortcuts/generate',
+            'POST /api/shortcuts/upload-temp',
+            'POST /api/shortcuts/import',
+            'GET /api/shortcuts/temp/:filename'
+        ]
+    });
+});
+
 module.exports = router;
