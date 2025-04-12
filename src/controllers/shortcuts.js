@@ -9,7 +9,7 @@ const writeFileAsync = promisify(fs.writeFile);
 // Function to generate a modified iOS shortcut
 const generateShortcut = async (req, res) => {
     try {
-        const { templateName, userId, jobId, fileName } = req.body;
+        const { templateName, userId, jobId, fileName, jobTitle } = req.body;
 
         if (!templateName || !userId || !jobId) {
             return res.status(400).json({
@@ -19,7 +19,7 @@ const generateShortcut = async (req, res) => {
         }
 
         // Log the request for debugging
-        console.log('Shortcut request:', { templateName, userId, jobId, fileName });
+        console.log('Shortcut request:', { templateName, userId, jobId, fileName, jobTitle });
 
         // Determine which template file to use based on templateName
         let templatePath;
@@ -69,7 +69,7 @@ const generateShortcut = async (req, res) => {
                 const jsonData = JSON.parse(jsonString);
                 
                 // Process the JSON structure to replace userId and jobId
-                const processedJson = processShortcutJson(jsonData, userId, jobId);
+                const processedJson = processShortcutJson(jsonData, userId, jobId, jobTitle);
                 
                 // Convert JSON to binary plist format used by .shortcut files
                 modifiedBuffer = Buffer.from(bplistCreator(processedJson));
@@ -166,9 +166,14 @@ const generateShortcut = async (req, res) => {
 };
 
 // Helper function to process JSON-structured shortcut files
-function processShortcutJson(jsonData, userId, jobId) {
+function processShortcutJson(jsonData, userId, jobId, jobTitle) {
     // Deep clone the JSON to avoid modifying the original
     const processed = JSON.parse(JSON.stringify(jsonData));
+    
+    // Set the shortcut name if jobTitle is provided
+    if (jobTitle) {
+        processed.WFWorkflowName = jobTitle;
+    }
     
     // Look for the dictionary action that contains userId and jobId
     if (processed.WFWorkflowActions && Array.isArray(processed.WFWorkflowActions)) {
@@ -259,7 +264,94 @@ const uploadTempShortcut = async (req, res) => {
     }
 };
 
+// Function to import and rename existing shortcut file
+const importShortcut = async (req, res) => {
+    try {
+        const { jobTitle, fileName } = req.body;
+
+        if (!jobTitle || !fileName) {
+            return res.status(400).json({
+                success: false,
+                message: 'Job title and file name are required'
+            });
+        }
+
+        // Log the request for debugging
+        console.log('Import shortcut request:', { jobTitle, fileName });
+
+        // Path to the existing Kfc.shortcut file
+        const sourcePath = path.join(__dirname, '../../../Kfc.shortcut');
+
+        // Check if source file exists
+        if (!fs.existsSync(sourcePath)) {
+            console.error(`Source shortcut file not found: ${sourcePath}`);
+            return res.status(404).json({
+                success: false,
+                message: 'Source shortcut file not found'
+            });
+        }
+
+        // Create the temp directory if it doesn't exist
+        const tempDir = path.join(__dirname, '../../temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        // Path for the renamed shortcut file
+        const outputPath = path.join(tempDir, fileName);
+        
+        // Read the source shortcut file
+        const shortcutBuffer = await readFileAsync(sourcePath);
+        
+        // If the file is a JSON shortcut, we can rename it
+        let modifiedBuffer;
+        
+        try {
+            // Try to parse as JSON
+            const jsonString = shortcutBuffer.toString('utf-8');
+            const jsonData = JSON.parse(jsonString);
+            
+            // Set the shortcut name
+            jsonData.WFWorkflowName = jobTitle;
+            
+            // Convert back to binary plist format
+            modifiedBuffer = Buffer.from(bplistCreator(jsonData));
+            console.log('Successfully renamed shortcut');
+        } catch (error) {
+            // If parsing as JSON fails, try to handle as binary plist
+            console.log('Source is not JSON, treating as binary plist');
+            // Just copy the file as is for now
+            modifiedBuffer = shortcutBuffer;
+        }
+        
+        // Save the modified file to the temporary location
+        await writeFileAsync(outputPath, modifiedBuffer);
+        
+        // Get the base URL from request
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+        
+        // Create the shortcut URL for direct import
+        const shortcutUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(`${baseUrl}/api/shortcuts/temp/${fileName}`)}`;
+        
+        res.json({
+            success: true,
+            shortcutUrl: shortcutUrl,
+            downloadUrl: `${baseUrl}/api/shortcuts/temp/${fileName}`
+        });
+        
+    } catch (error) {
+        console.error('Error importing shortcut:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error: ' + error.message
+        });
+    }
+};
+
 module.exports = {
     generateShortcut,
-    uploadTempShortcut
+    uploadTempShortcut,
+    importShortcut
 };

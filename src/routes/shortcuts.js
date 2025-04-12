@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { generateShortcut, uploadTempShortcut } = require('../controllers/shortcuts');
+const { generateShortcut, uploadTempShortcut, importShortcut } = require('../controllers/shortcuts');
 
 // Set up multer for file uploads
 const tempDir = path.join(__dirname, '../../temp');
@@ -26,6 +26,7 @@ const upload = multer({ storage: storage });
 // Shortcut routes
 router.post('/generate', generateShortcut);
 router.post('/upload-temp', upload.single('shortcutFile'), uploadTempShortcut);
+router.post('/import', importShortcut);
 
 // Serve temporary files
 router.get('/temp/:filename', (req, res) => {
